@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="sutd.guo.com.indoorlocation">
+
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <application
+        android:name="sutd.guo.com.indoorlocation.CrashApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".NavigateActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+
+        <service
+            android:name="sutd.guo.com.indoorlocation.MyIntentService"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter android:priority="1000">
+                <action android:name="WIFI_ONLY" />
+                <action android:name="GPS_SCAN" />
+                <action android:name="IMU_SCAN"/>
+                <action android:name="STEP_HEAD"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name="sutd.guo.com.indoorlocation.MyIntentService"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter android:priority="1000">
+                <action android:name="WIFI_ONLY" />
+                <action android:name="GPS_SCAN" />
+                <action android:name="IMU_SCAN"/>
+                <action android:name="STEP_HEAD"/>
+            </intent-filter>
+        </service>
+
+        <receiver
+            android:name=".util.BootBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false"
+            android:label="LocationLoggerServiceManager">
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.USER_PRESENT" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".util.AlarmReceiver"
+            android:enabled="true">
+            <intent-filter android:priority="1000">
+                <action android:name="sutd.guo.com.indoorlocation.alarmwifi" />
+            </intent-filter>
+            <intent-filter android:priority="1000">
+                <action android:name="sutd.guo.com.indoorlocation.alarmstep"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".util.MyNotificationReceiver"
+            android:enabled="true">
+            <intent-filter android:priority="1000">
+                <action android:name="sutd.guo.com.indoorlocation.WifiUploadOK" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".util.ServiceStartReceiver" android:enabled="true">
+            <intent-filter>
+                <action android:name="START_SERVICE_SUTD"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".util.ServiceStopReceiver" android:enabled="true">
+            <intent-filter>
+                <action android:name="STOP_SERVICE_SUTD"/>
+            </intent-filter>
+        </receiver>
+        <service android:name=".main.MonitorService"/>
+
+    </application>
+
+</manifest>

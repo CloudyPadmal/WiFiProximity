@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_start"
+
+            android:title="Start Service" />
+        <item
+            android:id="@+id/nav_status"
+
+            android:title="Phone status" />
+        <!--<item
+            android:id="@+id/nav_share"
+
+            android:title="About us" />-->
+        <item
+            android:id="@+id/nav_exit"
+
+            android:title="Exit" />
+       <!-- <item
+            android:id="@+id/nav_gallery"
+            android:icon="@drawable/ic_menu_gallery"
+            android:title="Gallery" />
+        <item
+            android:id="@+id/nav_slideshow"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="Slideshow" />-->
+
+    </group>
+
+    <!--<item android:title=" ">
+        <menu>
+
+        </menu>
+    </item>-->
+
+</menu>
