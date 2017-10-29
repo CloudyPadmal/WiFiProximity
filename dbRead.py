@@ -23,6 +23,9 @@ SHOW_POSE = "SELECT pose, tango_time FROM wifi_raw_data"
 POP_PC_DICT = "SELECT tango_time, pose FROM tango_point_cloud"
 POP_WI_DICT = "SELECT tango_time, wifi_scan, pose FROM wifi_raw_data WHERE tango_time BETWEEN 1501741597600 AND 1501745362100"
 
+estimated_X = 0;
+estimated_Y = 0;
+point_count = 0;
 """
 POP_WI_SET1 = "SELECT tango_time, wifi_scan, pose FROM wifi_raw_data WHERE tango_time BETWEEN 1504172574241 AND 1504172674241" # Assumed 1st data set
 POP_WI_SET2 = "SELECT tango_time, wifi_scan, pose FROM wifi_raw_data WHERE tango_time BETWEEN 1504172674261 AND 1504172874261" # Assumed 2nd data set
@@ -45,7 +48,7 @@ Y_AXIS = []
 Z_AXIS = []
 MACS = {}
 
-MACADD = "18:64:72:56:85:b3"#raw_input("MAC : ")
+MACADD = "18:64:72:56:84:b3"
 # Open a connection
 print("Creating connection ...")
 c = db.connect(host, username, password, database)
@@ -210,6 +213,72 @@ def showPoseAndTime():
 	for column in result:
 		print column
 
+def processResultSet(ax, result_set, address, annotate):
+
+    Set_X = []
+    Set_Y = []
+    Set_Z = []
+    Set_T = []
+    Set_R = []
+    set_r = []
+    Set_L = []
+
+    for column in result_set:
+        pose = column[2].split(",")
+        wifi_data = column[1].split(",")[1:]
+        try:
+            SUTD_Staff_index = wifi_data.index(address)
+            Set_X.append(np.float32(pose[7]))
+            Set_Y.append(np.float32(pose[9]))
+            Set_Z.append(np.float32(pose[8]))
+            Set_T.append(column[0])
+            Set_R.append(np.float32(wifi_data[SUTD_Staff_index - 1]))
+            set_r.append(np.float32(wifi_data[SUTD_Staff_index - 1]))
+        except ValueError:
+            set_r.append(np.float32(-100))
+    
+    minZ = min(Set_R)
+    for i in Set_R:
+        Set_L.append(i - minZ)
+    ax.scatter(Set_X, Set_Y, c=Set_L)
+    if annotate:
+        for i, txt in enumerate(Set_R):
+            ax.annotate(txt, (Set_X[i], Set_Y[i]), fontsize=6)
+    global point_count
+    point_count = len(Set_R)
+    print "Length of RSSI set --> " + str(point_count),
+    print " Min of RSSI values --> " + str(max(Set_R)),
+    global estimated_Y
+    global estimated_X
+    estimated_Y = set_r.index(max(Set_R))
+    estimated_X = set_r.index(max(Set_R))
+    print " (X, Y) = (" + str(estimated_X) + ", " + str(estimated_Y) + ")"
+
+def plotGroundTruth(groundTruth, result_set):
+    X_Axis = []
+    Y_Axis = []
+    Z_Axis = []
+    L_Axis = []
+    # Ground Truth
+    for column in result_set:
+        pose = column[2].split(",")
+        try:
+            X_Axis.append(np.float32(pose[7]))
+            Y_Axis.append(np.float32(pose[9]))
+            Z_Axis.append(np.float32(pose[8]))
+        except ValueError:
+            continue
+    minZ = min(Z_Axis)
+    for i in Z_Axis:
+        L_Axis.append(i - min(Z_Axis))
+    global estimated_Y
+    global estimated_X
+    global point_count
+    if point_count > 20:
+        L_Axis[estimated_X] = 100
+    groundTruth.scatter(X_Axis, Y_Axis, c=L_Axis)
+    print "Length of pose set --> " + str(len(Z_Axis)),
+
 def iteratePlotting():
     # List out all the MAC addresses
     SUTD_Staff_MACs = viewMACs()
@@ -227,144 +296,25 @@ def iteratePlotting():
     result_set3 = cursor.fetchall()
     # Process three result sets
     for address in SUTD_Staff_MACs:
-        annotate = True
-        ax1 = plt.subplot(221)
-        ax1.set_title("Set 1")
-        ax2 = plt.subplot(222, sharex=ax1, sharey=ax1)
-        ax2.set_title("Set 2")
-        ax3 = plt.subplot(223, sharex=ax1, sharey=ax1)
-        ax3.set_title("Set 3")
-        groundTruth = plt.subplot(224, sharex=ax1, sharey=ax1)
-        plt.title(str(address))
+        if address != MACADD or address == MACADD:
+            annotate = True
+            ax1 = plt.subplot(221)
+            ax1.set_title("Set 1")
+            ax2 = plt.subplot(222, sharex=ax1, sharey=ax1)
+            ax2.set_title("Set 2")
+            ax3 = plt.subplot(223, sharex=ax1, sharey=ax1)
+            ax3.set_title("Set 3")
+            groundTruth = plt.subplot(224, sharex=ax1, sharey=ax1)
+            plt.title(str(address))
 
-        Set_X = []
-        Set_Y = []
-        Set_Z = []
-        Set_T = []
-        Set_R = []
-
-        # Sub plot set 1
-        for column in result_set1:
-            pose = column[2].split(",")
-            wifi_data = column[1].split(",")[1:]
-            try:
-                SUTD_Staff_index = wifi_data.index(address)
-                Set_X.append(np.float32(pose[7]))
-                Set_Y.append(np.float32(pose[9]))
-                Set_Z.append(np.float32(pose[8]))
-                Set_T.append(column[0])
-                Set_R.append(np.float32(wifi_data[SUTD_Staff_index - 1]))
-            except ValueError:
-                continue
-        newRSSI_1 = []
-        for i in Set_R:
-            newRSSI_1.append(i - min(Set_R))
-        ax1.scatter(Set_X, Set_Y, c=newRSSI_1) # Interchanging y and z
-        if annotate:
-            for i, txt in enumerate(Set_R):
-                ax1.annotate(txt, (Set_X[i], Set_Y[i]), fontsize=6)
-        del Set_X[:]
-        del Set_Y[:]
-        del Set_Z[:]
-        del Set_T[:]
-        del Set_R[:]
-
-        # Sub plot set 2
-        for column in result_set2:
-            pose = column[2].split(",")
-            wifi_data = column[1].split(",")[1:]
-            try:
-                SUTD_Staff_index = wifi_data.index(address)
-                Set_X.append(np.float32(pose[7]))
-                Set_Y.append(np.float32(pose[9]))
-                Set_Z.append(np.float32(pose[8]))
-                Set_T.append(column[0])
-                Set_R.append(np.float32(wifi_data[SUTD_Staff_index - 1]))
-            except ValueError:
-                continue
-        newRSSI_2 = []
-        for i in Set_R:
-            newRSSI_2.append(i - min(Set_R))
-        ax2.scatter(Set_X, Set_Y, c=newRSSI_2)
-        if annotate:
-            for i, txt in enumerate(Set_R):
-                ax2.annotate(txt, (Set_X[i], Set_Y[i]), fontsize=6)
-        del Set_X[:]
-        del Set_Y[:]
-        del Set_Z[:]
-        del Set_T[:]
-        del Set_R[:]
-
-        # Sub plot set 3
-        for column in result_set3:
-            pose = column[2].split(",")
-            wifi_data = column[1].split(",")[1:]
-            try:
-                SUTD_Staff_index = wifi_data.index(address)
-                Set_X.append(np.float32(pose[7]))
-                Set_Y.append(np.float32(pose[9]))
-                Set_Z.append(np.float32(pose[8]))
-                Set_T.append(column[0])
-                Set_R.append(np.float32(wifi_data[SUTD_Staff_index - 1]))
-            except ValueError:
-                continue
-        newRSSI_3 = []
-        for i in Set_R:
-            newRSSI_3.append(i - min(Set_R))
-        ax3.scatter(Set_X, Set_Y, c=newRSSI_3)
-        if annotate:
-            for i, txt in enumerate(Set_R):
-                ax3.annotate(txt, (Set_X[i], Set_Y[i]), fontsize=6)
-        del Set_X[:]
-        del Set_Y[:]
-        del Set_Z[:]
-        del Set_T[:]
-        del Set_R[:]
-
-        X_Axis = []
-        Y_Axis = []
-        Z_Axis = []
-        # Ground Truth
-        for column in result_set1:
-            pose = column[2].split(",")
-            try:
-                X_Axis.append(np.float32(pose[7]))
-                Y_Axis.append(np.float32(pose[9]))
-                Z_Axis.append(np.float32(pose[8]))
-            except ValueError:
-                continue
-        newZ = []
-        for i in Z_Axis:
-            newZ.append(i - min(Z_Axis))
-        groundTruth.scatter(X_Axis, Y_Axis, c=newZ)
-
-        mng = plt.get_current_fig_manager()
-        mng.full_screen_toggle()
-        plt.show()
-
-def plotPose():
-    cursor = c.cursor()
-    POP_POSE = "SELECT tango_time, pose FROM wifi_raw_data WHERE tango_time BETWEEN 1508911403693 AND 1508911870731"
-    # Create three cursors with three data set
-    cursor.execute(POP_POSE)
-    result_set = cursor.fetchall()
-    X_Axis = []
-    Y_Axis = []
-    Z_Axis = []
-    # Sub plot set 1
-    for column in result_set:
-        pose = column[1].split(",")
-        try:
-            X_Axis.append(np.float32(pose[7]))
-            Y_Axis.append(np.float32(pose[9]))
-            Z_Axis.append(np.float32(pose[8]))
-        except ValueError:
-            continue
-    newRSSI_1 = []
-    for i in Z_Axis:
-        newRSSI_1.append(i - min(Z_Axis))
-    plt.scatter(X_Axis, Y_Axis, c=newRSSI_1)
-    plt.show()
+            processResultSet(ax1, result_set1, address, annotate)
+            processResultSet(ax2, result_set2, address, annotate)
+            processResultSet(ax3, result_set3, address, annotate)
+            plotGroundTruth(groundTruth, result_set1)
+            
+            mng = plt.get_current_fig_manager()
+            mng.full_screen_toggle()
+            plt.show()
 
 
 # Plot graphs
