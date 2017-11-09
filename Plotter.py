@@ -87,6 +87,15 @@ class Plotter:
                 ax.annotate(txt, (Set_X[i], Set_Y[i]), fontsize=6)
 
         min_RSSI_index = set_r.index(max(Set_R))
+        print len(Set_R)
+
+        min_rssi_index = Set_R.index(max(Set_R))
+        
+        """
+        A = min_rssi_index - 2
+        B = min_rssi_index
+        C = min_rssi_index + 2
+        """
         A = int((len(Set_R) / 6))
         B = int(len(Set_R) / 2)
         C = int((len(Set_R) * 5 / 6))
@@ -141,6 +150,28 @@ class Plotter:
         groundTruth.scatter(X_Axis, Y_Axis, c=L_Axis)
 
         return Points[3][2]
+
+    def firstApproach(self, groundTruth, result_set, _x):
+        X_Axis = []
+        Y_Axis = []
+        Z_Axis = []
+        L_Axis = []
+        C = Calculator()
+        # Ground Truth
+        for column in result_set:
+            pose = column[2].split(",")
+            try:
+                X_Axis.append(np.float32(pose[7]))
+                Y_Axis.append(np.float32(pose[9]))
+                Z_Axis.append(np.float32(pose[8]))
+            except ValueError:
+                continue
+        L_Axis = self.getMinimumZList(Z_Axis)
+
+        L_Axis[_x] = 100
+        minimumRSSIPoint = [X_Axis[_x], Y_Axis[_x]]
+        
+        groundTruth.scatter(X_Axis, Y_Axis, c=L_Axis)
 
 
     def analyzeCircles(self, C1X, C1Y, C2X, C2Y, C3X, C3Y, minRSSIPoint):

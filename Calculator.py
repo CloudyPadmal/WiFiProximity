@@ -5,6 +5,7 @@ class Calculator:
 
     def calculateDistance(self, RSSI):
         return pow(10 ,((27.55 - (20 * log10(2412)) - RSSI) / 20))
+        #return pow(10 ,((36.58 - (20 * log10(2412)) - RSSI) / 20))
 
     def generateCircle(self, RSSI, x, y, z=100):
 

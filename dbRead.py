@@ -8,12 +8,15 @@ from math import log10, pow, sin, cos, radians
 from Calculator import Calculator
 from Database import Database
 from Plotter import Plotter
+from ParticleFilter import ParticleFilter
 
 MACADD = "18:64:72:56:84:b3"
 
 DB = Database()
 CA = Calculator()
 PL = Plotter()
+PF = ParticleFilter()
+PF.gridCoordinates()
 """
 (X, Y, Z) = CA.generateCircle(RSSI=-70, x=1, y=2, z=1)
 plt.scatter(X, Y, s=Z)
@@ -45,14 +48,17 @@ def iteratePlotting():
             #print (min_RSSI_index2, three_points2, three_points_RSSIs2)
             #print (min_RSSI_index3, three_points3, three_points_RSSIs3)
             offset = PL.plotGroundTruth(groundTruth, result_set1, min_RSSI_index1, three_points1, three_points_RSSIs1)
+            #PL.firstApproach(groundTruth, result_set1, min_RSSI_index1)
             
             plt.title(str(address) + " at a distance of " + str(offset) + " m")
+            #plt.title(str(address))
 
             mng = plt.get_current_fig_manager()
             mng.full_screen_toggle()
             plt.show()
 
-iteratePlotting()
+#iteratePlotting()
+
 
 """
 First run viewMACs() to obtain MAC addresses of SUTD_Staff

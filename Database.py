@@ -107,6 +107,26 @@ class Database:
                 MACss.append(key)
         return MACss
 
+    def showColumnsInWiFi(self):
+        c = self.initiate()
+        cursor = c.cursor()
+        cursor.execute("SELECT wifi_scan FROM wifi_raw_data WHERE tango_time > " + str(1508911403692))
+        """
+        cursor.execute("SELECT wifi_scan FROM wifi_raw_data WHERE tango_time > " + str(1508911403692))
+        # N
+        # SUTD_Guest
+        # 5240
+        # -80
+        # 18:64:72:56:3a:b5
+        # ...
+        """
+        result = cursor.fetchall()
+        TABLE = []
+        for row in result:
+            TABLE.append(row[0])
+        #print(TABLE)
+        c.close()
+
     def printTableContent(self):
         """
         Prints all the content in the table and clause defined by the SELECT_CLAUSE
@@ -119,21 +139,6 @@ class Database:
         c.close()
         for column in result:
             print column
-
-    def populateTable(self, index):
-        """
-        Displays column names in the specific table;
-        In 'wifi_raw_data' --> ['user_id', 'pose', 'tango_time', 'wifi_scan', 'timestamp', 'id']
-        """
-        c = self.initiate()
-        cursor = c.cursor()
-        cursor.execute(SHOW_COLUMNS + TABLES_TANGO[index])
-        result = cursor.fetchall()
-        c.close()
-        ROW = []
-        for column in result:
-            ROW.append(column[0])
-        print (ROW)
 
     def populateWiFi(self, MAC, PARAM):
         # Populate Pose data
@@ -177,3 +182,33 @@ class Database:
         result_set3 = cursor.fetchall()
         c.close()
         return result_set1, result_set2, result_set3
+
+    ##############################################################################################################################################################################
+
+    def getXYZCoordinates(self, MAC):
+        PARAM = "SELECT wifi_scan, pose FROM wifi_raw_data WHERE tango_time BETWEEN 1508911403693 AND 1508911870731"
+        # Populate Pose data
+        c = self.initiate()
+        cursor = c.cursor()
+        cursor.execute(PARAM)
+        result = cursor.fetchall()
+        c.close()
+        XYR = []
+        XY = []
+        X = []
+        Y = []
+        R = []
+        for column in result:
+            pose = column[1].split(",")
+            wifi_data = column[0].split(",")[1:]
+            try:
+                SUTD_Staff_index = wifi_data.index(MAC)
+                XYR.append([np.float32(pose[7]), np.float32(pose[9]), np.float32(wifi_data[SUTD_Staff_index - 1])])
+                XY.append([np.float32(pose[7]), np.float32(pose[9])])
+                X.append(np.float32(pose[7]))
+                Y.append(np.float32(pose[9]))
+                R.append(np.float32(wifi_data[SUTD_Staff_index - 1]))
+                F = np.float32(wifi_data[SUTD_Staff_index - 2])
+            except ValueError:
+                continue
+        return XYR, XY, R, F, X, Y
