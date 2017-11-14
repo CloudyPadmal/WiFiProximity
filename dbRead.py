@@ -1,8 +1,5 @@
 import numpy as np
-import MySQLdb as db
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from mpl_toolkits.mplot3d import Axes3D
 import datetime
 from math import log10, pow, sin, cos, radians
 from Calculator import Calculator
@@ -16,7 +13,9 @@ DB = Database()
 CA = Calculator()
 PL = Plotter()
 PF = ParticleFilter()
-PF.gridCoordinates()
+
+PF.compareDistancesWithSignalStrength()
+
 """
 (X, Y, Z) = CA.generateCircle(RSSI=-70, x=1, y=2, z=1)
 plt.scatter(X, Y, s=Z)

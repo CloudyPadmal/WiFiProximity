@@ -20,9 +20,7 @@ class Database:
     CURRENT_TIME = 1508911403692
 
     def initiate(self, username=username, password=password, host=host, database=database):
-        print("Initiating ...")
         c = db.connect(host, username, password, database)
-        print("Ready ...")
         return c
 
     def showDatabases(self):
@@ -171,14 +169,14 @@ class Database:
         c = self.initiate()
         cursor = c.cursor()
         POP_WI_SET1 = "SELECT tango_time, wifi_scan, pose FROM wifi_raw_data WHERE tango_time BETWEEN 1508911403693 AND 1508911870731"
-        POP_WI_SET2 = "SELECT tango_time, wifi_scan, pose FROM wifi_raw_data WHERE tango_time BETWEEN 1508911870732 AND yy"
-        POP_WI_SET3 = "SELECT tango_time, wifi_scan, pose FROM wifi_raw_data WHERE tango_time BETWEEN yy AND zz"
+        POP_WI_SET2 = "SELECT tango_time, wifi_scan, pose FROM wifi_raw_data WHERE tango_time BETWEEN 1510554636779 AND 1510555206600"
+        POP_WI_SET3 = "SELECT tango_time, wifi_scan, pose FROM wifi_raw_data WHERE tango_time BETWEEN 1510556500867 AND 1510557034437"
         # Create three cursors with three data set
         cursor.execute(POP_WI_SET1)
         result_set1 = cursor.fetchall()
-        cursor.execute(POP_WI_SET1)
+        cursor.execute(POP_WI_SET2)
         result_set2 = cursor.fetchall()
-        cursor.execute(POP_WI_SET1)
+        cursor.execute(POP_WI_SET3)
         result_set3 = cursor.fetchall()
         c.close()
         return result_set1, result_set2, result_set3
@@ -186,7 +184,9 @@ class Database:
     ##############################################################################################################################################################################
 
     def getXYZCoordinates(self, MAC):
-        PARAM = "SELECT wifi_scan, pose FROM wifi_raw_data WHERE tango_time BETWEEN 1508911403693 AND 1508911870731"
+        #PARAM = "SELECT wifi_scan, pose FROM wifi_raw_data WHERE tango_time BETWEEN 1508911403693 AND 1508911870731"
+        #PARAM = "SELECT wifi_scan, pose FROM wifi_raw_data WHERE tango_time BETWEEN 1510554636779 AND 1510555206600"
+        PARAM = "SELECT wifi_scan, pose FROM wifi_raw_data WHERE tango_time BETWEEN 1510556500867 AND 1510557034437"
         # Populate Pose data
         c = self.initiate()
         cursor = c.cursor()
@@ -196,12 +196,18 @@ class Database:
         XYR = []
         XY = []
         X = []
+        AllX = []
+        AllY = []
+        AllZ = []
         Y = []
         R = []
         for column in result:
             pose = column[1].split(",")
             wifi_data = column[0].split(",")[1:]
             try:
+                AllX.append(np.float32(pose[7]))
+                AllY.append(np.float32(pose[9]))
+                AllZ.append(100)
                 SUTD_Staff_index = wifi_data.index(MAC)
                 XYR.append([np.float32(pose[7]), np.float32(pose[9]), np.float32(wifi_data[SUTD_Staff_index - 1])])
                 XY.append([np.float32(pose[7]), np.float32(pose[9])])
@@ -211,4 +217,4 @@ class Database:
                 F = np.float32(wifi_data[SUTD_Staff_index - 2])
             except ValueError:
                 continue
-        return XYR, XY, R, F, X, Y
+        return XYR, XY, R, F, X, Y, [AllX, AllY, AllZ]

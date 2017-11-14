@@ -215,3 +215,13 @@ class Plotter:
             APCoordinates = [0, 0, 0]
 
         return [nearSet1X, nearSet1Y, nearSet1Z, APCoordinates]
+
+    def printCompleteMap(self, XYZs):
+        plt.scatter(XYZs[0], XYZs[1], s=XYZs[2])
+        plt.show()
+
+    def printCompleteMapInColor(self, XYZs):
+        plt.scatter(XYZs[0], XYZs[1], c=XYZs[2], alpha=0.5)
+        for i, txt in enumerate(XYZs[2]):
+            plt.annotate(txt, (XYZs[0][i], XYZs[1][i]), fontsize=6)
+        plt.show()
