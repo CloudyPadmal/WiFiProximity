@@ -1,2 +1,0 @@
-﻿1.password:sutd123
-this password use for build apk .
